@@ -4,34 +4,25 @@ import './App.css';
 
 interface AppProps { }
 
-const fetcher = () => {
-  return new Promise((resolve) => setTimeout(() => resolve(Math.random()), 2000))
+const fetcher = (repo: string) => {
+  return fetch(`https://api.github.com/repos/${repo}`).then(res => res.json());
 }
 
-function Fetch() {
-  const [enabled, setEnabled] = useState(false);
-
-  const { data, error, isLoading, isError, isFetched, isFetching, isIdle, isSuccess } = useQuery<any, any>('first-request', fetcher, {
-    enabled
-  });
+function Fetch(props: { repoName: string }) {
+  const { data, isLoading } = useQuery<any, any>(['github-data', props.repoName], () => fetcher(props.repoName));
   return <div>
-    <div onClick={() => setEnabled((e) => !e)}>Enabled: {enabled.toString()}</div>
-    <div>
-      Data is {data}
-    </div>
-    <div>
-      {JSON.stringify({ isError, error, isLoading, isFetched, isFetching, isIdle, isSuccess }, null, 2)}
+    <div style={{ fontWeight: 'bold' }}>
+      {!isLoading ? data && <div><div>Name: {data.name}</div><div>Description: {data.description}</div><div>Stars: {data.stargazers_count}</div></div> : "Loading"}
     </div>
   </div>
 }
 
 function App({ }: AppProps) {
-  const [isVisible, setIsVisible] = useState(true);
-
+  const [repoName, setRepoName] = useState('')
   return (
     <div className="App">
-      <button onClick={() => setIsVisible((visible) => !visible)}>Toggle Visibility</button>
-      {isVisible && <Fetch />}
+      <input type="text" onChange={(e) => setRepoName(e.target.value)} value={repoName} />
+      <Fetch repoName={repoName} />
     </div>
   );
 }
