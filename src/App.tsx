@@ -1,38 +1,62 @@
-import React from 'react';
-import { useMutation } from "react-query";
+import React, { useState } from 'react';
+import { useMutation, useQuery } from "react-query";
 import './App.css';
 
-const timer = (duration: number, variables: Record<string, any>) => new Promise((resolve) => setTimeout(() => {
-  console.log(`Mutation Running with variables ${JSON.stringify(variables, null, 2)}`)
-  resolve('Data received')
-}, duration))
+interface ITodo {
+  activity: string
+  done: boolean
+  id: string
+}
 
 function App() {
-  const mutation = useMutation((variables: Record<string, any>) => timer(1000, variables), {
+  const [todo, setTodo] = useState('');
+
+  const { data, isLoading, isError } = useQuery<{
+    todos: ITodo[]
+  }>(['todos'], () => {
+    return fetch(`http://localhost:5000/todos`).then((res) => res.json())
+  })
+
+  const mutation = useMutation((variables: {
+    data: Omit<ITodo, "id">
+  }) => {
+    return fetch(`http://localhost:5000/add-todo`, {
+      method: 'POSt',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(variables)
+    })
+  }, {
     onSuccess(data) {
       console.log(`Data: ${data}`)
     },
     onError(error) {
       console.log(`An error occurred, ${error}`)
-    },
-    onSettled(data, error) {
-      console.log({ data, error })
     }
   });
 
   async function callMutation() {
-    console.log("Calling mutation")
     await mutation.mutateAsync({
-      input: {
-        name: 'Devorein'
+      data: {
+        activity: todo,
+        done: false
       }
     });
-    console.log("Mutation ran")
   }
 
+  if (isLoading) return <div>Fetching todos ...</div>
+  if (isError) return <div>Error fetching todos</div>
+
   return (
-    <div onClick={callMutation} className="App">
-      Hello World
+    <div className="Langs">
+      <input value={todo} onChange={(e) => setTodo(e.target.value)} />
+      <button onClick={callMutation}>Create</button>
+      {data && data.todos.map(todo => <div key={todo.id}>
+        <span>Activity: {todo.activity}</span>
+        <span>Done: {todo.done}</span>
+        <span>x</span>
+      </div>)}
     </div>
   );
 }

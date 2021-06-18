@@ -1,19 +1,25 @@
 const express = require("express");
+const cors = require("cors");
+const shortid = require("shortid")
 
 const app = express();
 
 app.use(express.json())
+app.use(cors())
 
-const langs = [];
+const todos = [];
 
-app.get("/langs", (req, res)=>{ 
+app.get("/todos", (req, res)=>{ 
   res.json({
-    langs
+    todos
   });
 })
 
-app.post("/add-lang", (req, res)=>{
-  langs.push(req.body.lang);
+app.post("/add-todo", (req, res)=>{
+  todos.push({
+    ...req.body.data,
+    id: shortid()
+  });
   res.json({
     status: 'OK'
   })
