@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery } from "react-query";
+import shortid from "shortid";
 import './App.css';
+import client from './react-query-client';
 
 interface ITodo {
   activity: string
@@ -18,7 +20,7 @@ function App() {
   })
 
   const mutation = useMutation((variables: {
-    data: Omit<ITodo, "id">
+    data: ITodo
   }) => {
     return fetch(`http://localhost:5000/add-todo`, {
       method: 'POSt',
@@ -26,10 +28,17 @@ function App() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(variables)
-    })
+    }).then(res => res.json()) as Promise<{ data: ITodo }>
   }, {
-    onSuccess(data) {
-      console.log(`Data: ${data}`)
+    onSuccess(response: { data: ITodo }) {
+      setTodo('')
+      client.setQueryData<{ todos: ITodo[] }>(['todos'], (data) => {
+        return data ? {
+          todos: data.todos.concat(response.data)
+        } : {
+          todos: []
+        }
+      })
     },
     onError(error) {
       console.log(`An error occurred, ${error}`)
@@ -40,7 +49,8 @@ function App() {
     await mutation.mutateAsync({
       data: {
         activity: todo,
-        done: false
+        done: false,
+        id: shortid()
       }
     });
   }

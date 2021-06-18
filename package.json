@@ -20,6 +20,7 @@
     "@types/express": "^4.17.12",
     "@types/react": "^17.0.4",
     "@types/react-dom": "^17.0.3",
+    "@types/shortid": "^0.0.29",
     "@types/snowpack-env": "^2.3.3",
     "prettier": "^2.2.1",
     "snowpack": "^3.3.7",

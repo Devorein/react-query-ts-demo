@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const shortid = require("shortid")
 
 const app = express();
 
@@ -16,12 +15,10 @@ app.get("/todos", (req, res)=>{
 })
 
 app.post("/add-todo", (req, res)=>{
-  todos.push({
-    ...req.body.data,
-    id: shortid()
-  });
+  todos.push(req.body.data);
   res.json({
-    status: 'OK'
+    status: 'OK',
+    data: req.body.data
   })
 })
 
